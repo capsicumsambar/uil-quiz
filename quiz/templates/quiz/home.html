@@ -1,0 +1,68 @@
+<!-- quiz/templates/quiz/home.html -->
+
+{% extends 'quiz/base.html' %} {% block extra_css %}
+<style>
+  .home-container {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .main-heading {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #212529;
+    margin-bottom: 1rem;
+  }
+
+  .subheading {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 2.5rem;
+  }
+
+  .note {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-left: 3px solid #999;
+    border-radius: 4px;
+    text-align: left;
+  }
+
+  .start-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(74, 144, 226, 0.3);
+  }
+
+  .start-button:hover {
+    background-color: #357abd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(74, 144, 226, 0.4);
+  }
+</style>
+
+{% endblock %} {% block content %}
+<div class="home-container">
+  <h1 class="main-heading">UIL Social Studies Quiz</h1>
+  <div class="note">
+    <strong>Note:</strong> This quiz is for 5th/6th Grade UIL Social Studies.
+    Questions are from the 2023-24 and 2024-25 seasons. Some questions may need
+    to be answered with those dates in mind.
+  </div>
+  <p class="subheading">Test your knowledge and prepare for the competition.</p>
+  <form action="{% url 'start_quiz' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="start-button">Start Quiz</button>
+  </form>
+</div>
+{% endblock %}

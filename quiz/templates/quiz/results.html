@@ -1,0 +1,162 @@
+<!-- quiz/templates/quiz/results.html -->
+
+{% extends 'quiz/base.html' %} {% block extra_css %}
+<style>
+  h1 {
+    font-size: 16px;
+  }
+
+  body {
+    font-size: 15px;
+  }
+  .results-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .results-card {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .results-heading {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #212529;
+    margin-bottom: 1rem;
+  }
+
+  .score-display {
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 1.5rem 0;
+  }
+
+  .score-label {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+  }
+
+  .retry-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(74, 144, 226, 0.3);
+  }
+
+  .retry-button:hover {
+    background-color: #357abd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(74, 144, 226, 0.4);
+  }
+
+  .incorrect-section {
+    margin-top: 3rem;
+  }
+
+  .section-heading {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #212529;
+    margin-bottom: 1.5rem;
+  }
+
+  .incorrect-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--danger-color);
+  }
+
+  .incorrect-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 1rem;
+  }
+
+  .answer-line {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
+
+  .your-answer {
+    background-color: var(--light-danger);
+    color: #721c24;
+  }
+
+  .correct-answer-line {
+    background-color: var(--light-success);
+    color: #155724;
+  }
+
+  .answer-label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .percentage {
+    font-size: 1.5rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="results-container">
+  <div class="results-card">
+    <h1 class="results-heading">Quiz Complete!</h1>
+
+    <div class="score-display">{{ score }} / {{ total_questions }}</div>
+
+    <div class="percentage">{% widthratio score total_questions 100 %}%</div>
+
+    <p class="score-label">
+      {% if score == total_questions %} Perfect score! Outstanding work! {% elif
+      score >= total_questions|floatformat:0|add:"-2" %} Excellent job! {% elif
+      score >= total_questions|floatformat:0|add:"-5" %} Good work! Keep
+      practicing. {% else %} Keep studying and try again! {% endif %}
+    </p>
+
+    <form action="{% url 'start_quiz' %}" method="post">
+      {% csrf_token %}
+      <button type="submit" class="retry-button">Try Another Quiz</button>
+    </form>
+  </div>
+
+  {% if incorrect_answers %}
+  <div class="incorrect-section">
+    <h2 class="section-heading">Review Incorrect Answers</h2>
+
+    {% for item in incorrect_answers %}
+    <div class="incorrect-item">
+      <div class="incorrect-question">{{ item.question }}</div>
+
+      <div class="answer-line your-answer">
+        <span class="answer-label">Your Answer:</span>
+        {{ item.user_answer }}
+      </div>
+
+      <div class="answer-line correct-answer-line">
+        <span class="answer-label">Correct Answer:</span>
+        {{ item.correct_answer }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

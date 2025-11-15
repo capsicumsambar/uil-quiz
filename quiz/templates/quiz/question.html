@@ -1,0 +1,198 @@
+<!-- quiz/templates/quiz/question.html -->
+
+{% extends 'quiz/base.html' %} {% block header_right %}
+<div class="score-indicator">
+  Score: <span id="score">{{ score }}</span> / {{ total_questions }}
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .question-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .progress-indicator {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #6c757d;
+    font-weight: 600;
+  }
+
+  .question-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+  }
+
+  .question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+  }
+
+  .answer-option {
+    width: 100%;
+    text-align: left;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    background-color: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .answer-option:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+    transform: translateX(4px);
+  }
+
+  .answer-option:disabled {
+    cursor: not-allowed;
+  }
+
+  .answer-option.correct {
+    background-color: var(--light-success);
+    border-color: var(--success-color);
+    color: #155724;
+  }
+
+  .answer-option.incorrect {
+    background-color: var(--light-danger);
+    border-color: var(--danger-color);
+    color: #721c24;
+  }
+
+  .option-label {
+    font-weight: 700;
+    margin-right: 1rem;
+    color: #495057;
+  }
+
+  .navigation-footer {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .next-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 2.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: none;
+  }
+
+  .next-button:hover {
+    background-color: #357abd;
+  }
+
+  .next-button.show {
+    display: inline-block;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="question-container">
+  <div class="progress-indicator">
+    Question {{ question_number }} of {{ total_questions }}
+  </div>
+
+  <div class="question-card">
+    <div class="question-text">{{ question.question }}</div>
+
+    <form id="answer-form">
+      {% csrf_token %}
+      <input type="hidden" name="question_id" value="{{ question.id }}" />
+
+      {% for label, option in question.get_options %}
+      <button
+        type="button"
+        class="answer-option"
+        data-answer="{{ option }}"
+        onclick="selectAnswer(this, '{{ option }}')"
+      >
+        <span class="option-label">{{ label }}.</span>
+        {{ option }}
+      </button>
+      {% endfor %}
+    </form>
+  </div>
+
+  <div class="navigation-footer">
+    <form action="{% url 'next_question' %}" method="post">
+      {% csrf_token %}
+      <button type="submit" class="next-button" id="next-btn">Next</button>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  let answerSelected = false;
+
+  function selectAnswer(button, userAnswer) {
+    if (answerSelected) return;
+    answerSelected = true;
+
+    // Disable all buttons
+    const allButtons = document.querySelectorAll(".answer-option");
+    allButtons.forEach((btn) => (btn.disabled = true));
+
+    // Get CSRF token
+    const csrftoken = document.querySelector(
+      "[name=csrfmiddlewaretoken]"
+    ).value;
+
+    // Send answer to server
+    fetch("{% url 'check_answer' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": csrftoken,
+      },
+      body: new URLSearchParams({
+        question_id: "{{ question.id }}",
+        answer: userAnswer,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Highlight selected answer
+        if (data.is_correct) {
+          button.classList.add("correct");
+          // Update score display
+          const scoreElement = document.getElementById("score");
+          scoreElement.textContent = parseInt(scoreElement.textContent) + 1;
+        } else {
+          button.classList.add("incorrect");
+
+          // Highlight correct answer
+          allButtons.forEach((btn) => {
+            if (btn.dataset.answer === data.correct_answer) {
+              btn.classList.add("correct");
+            }
+          });
+        }
+
+        // Show next button
+        document.getElementById("next-btn").classList.add("show");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+        answerSelected = false;
+        allButtons.forEach((btn) => (btn.disabled = false));
+      });
+  }
+</script>
+{% endblock %}
