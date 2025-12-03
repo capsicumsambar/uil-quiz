@@ -118,3 +118,7 @@ def results(request):
     }
 
     return render(request, "quiz/results.html", context)
+
+
+def spelling_bee(request):
+    return render(request, "quiz/spelling.html")

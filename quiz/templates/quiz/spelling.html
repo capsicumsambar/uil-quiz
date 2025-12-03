@@ -1,0 +1,1407 @@
+{% extends 'quiz/base.html' %} {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spelling Bee - 6th Grade (A-Z)</title>
+    <style>
+      :root {
+        --primary-blue: #5c6bc0;
+        --light-blue: #e8eaf6;
+        --accent-orange: #d87f58;
+        --accent-orange-hover: #bf6e4a;
+        --text-dark: #333;
+        --text-light: #666;
+        --bg-color: #f5f6fa;
+        --white: #ffffff;
+        --success: #4caf50;
+        --error: #f44336;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Nunito", "Segoe UI", Tahoma, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-dark);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        width: 100%;
+        max-width: 400px;
+        min-height: 100vh;
+        background-color: var(--bg-color);
+        position: relative;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* --- Header --- */
+      header {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .bee-icon {
+        font-size: 2rem;
+      }
+
+      .title-text h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--primary-blue);
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .title-text span {
+        font-size: 0.9rem;
+        color: var(--primary-blue);
+      }
+
+      .score-badge {
+        background: var(--white);
+        padding: 5px 15px;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        font-weight: bold;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .menu-btn,
+      .exit-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-dark);
+        padding: 5px;
+      }
+
+      /* --- Screens --- */
+      .screen {
+        display: none;
+        flex: 1;
+        padding: 20px;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .screen.active {
+        display: flex;
+      }
+
+      /* --- Cards --- */
+      .home-card,
+      .game-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 25px;
+        width: 100%;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .home-card h2 {
+        color: var(--primary-blue);
+        margin-bottom: 10px;
+      }
+      .home-card p {
+        color: var(--text-light);
+        margin-bottom: 30px;
+        line-height: 1.5;
+      }
+
+      /* --- Progress Bar --- */
+      .progress-text {
+        text-align: left;
+        font-weight: bold;
+        color: var(--text-light);
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+
+      .progress-bar-bg {
+        background: #eee;
+        height: 8px;
+        border-radius: 4px;
+        width: 100%;
+        margin-bottom: 30px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        background: var(--primary-blue);
+        height: 100%;
+        width: 10%;
+        transition: width 0.3s ease;
+      }
+
+      /* --- Buttons --- */
+      .btn-main {
+        background-color: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 15px;
+        width: 100%;
+        border-radius: 15px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+        box-shadow: 0 4px 0 #3f51b5;
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+
+      .btn-main:active {
+        transform: translateY(4px);
+        box-shadow: none;
+      }
+
+      .btn-next {
+        background-color: var(--success);
+        box-shadow: 0 4px 0 #388e3c;
+      }
+
+      .btn-audio {
+        background-color: var(--accent-orange);
+        color: white;
+        border: none;
+        padding: 20px;
+        width: 100%;
+        border-radius: 50px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 0 var(--accent-orange-hover);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .btn-audio:active {
+        transform: translateY(6px);
+        box-shadow: none;
+      }
+
+      .helper-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 25px;
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary-blue);
+        color: var(--primary-blue);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      /* --- Input & Feedback --- */
+      .input-wrapper {
+        margin-bottom: 15px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        text-align: center;
+        font-family: monospace;
+        letter-spacing: 2px;
+        outline: none;
+      }
+      input[type="text"]:focus {
+        border-color: var(--primary-blue);
+      }
+      input[type="text"]:disabled {
+        background-color: #f9f9f9;
+        color: #999;
+      }
+
+      .feedback-msg {
+        min-height: 20px;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+      .correct {
+        color: var(--success);
+      }
+      .incorrect {
+        color: var(--error);
+      }
+
+      .reveal-answer {
+        background-color: #ffebee;
+        color: #c62828;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: none; /* Hidden by default */
+        font-size: 1.1rem;
+      }
+
+      /* --- Sidebar --- */
+      .sidebar {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 100;
+        top: 0;
+        left: 0;
+        background-color: var(--white);
+        overflow-x: hidden;
+        transition: 0.3s;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        padding-top: 60px;
+      }
+
+      .sidebar .closebtn {
+        position: absolute;
+        top: 10px;
+        right: 25px;
+        font-size: 36px;
+        text-decoration: none;
+        color: #818181;
+        cursor: pointer;
+      }
+
+      .sidebar-content {
+        padding: 20px;
+      }
+      .sidebar h3 {
+        color: var(--primary-blue);
+      }
+
+      .custom-input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      #overlay {
+        position: fixed;
+        display: none;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+      }
+
+      /* --- Results Screen --- */
+      .results-score {
+        font-size: 4rem;
+        color: var(--primary-blue);
+        font-weight: 800;
+        margin: 10px 0;
+      }
+
+      .results-list {
+        text-align: left;
+        margin-top: 20px;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        border-top: 1px solid #eee;
+      }
+
+      .result-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        font-size: 0.95rem;
+      }
+
+      .res-correct {
+        color: var(--success);
+        background-color: #e8f5e9;
+      }
+
+      .res-incorrect {
+        color: var(--error);
+        background-color: #ffebee;
+      }
+
+      .res-detail {
+        display: block;
+        font-size: 0.8rem;
+        color: #555;
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay" onclick="closeNav()"></div>
+
+    <!-- SIDEBAR MENU -->
+    <div id="mySidebar" class="sidebar">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"
+        >&times;</a
+      >
+      <div class="sidebar-content">
+        <h3>Settings & Custom Words</h3>
+        <p style="font-size: 0.9rem; color: #666">
+          Add your own words to the quiz rotation.
+        </p>
+
+        <div
+          style="
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: #e65100;
+            margin-bottom: 15px;
+          "
+        >
+          <strong>Note for iPad/iPhone:</strong> This feature works on mobile
+          devices! Words are saved to this specific device's browser storage.
+        </div>
+
+        <input
+          type="text"
+          id="new-word-input"
+          class="custom-input"
+          placeholder="Enter word (e.g., Photosynthesis)"
+        />
+        <button
+          class="btn-main"
+          onclick="saveNewWord()"
+          style="margin-top: 0; padding: 10px; font-size: 1rem"
+        >
+          + Add Word
+        </button>
+        <p
+          id="save-status"
+          style="font-size: 0.8rem; margin-top: 5px; height: 1rem"
+        ></p>
+
+        <h4>My Custom Words:</h4>
+        <ul id="custom-words-list" style="padding-left: 20px; color: #555"></ul>
+        <button
+          onclick="clearCustomWords()"
+          style="
+            background: #ffcdd2;
+            color: #c62828;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+          "
+        >
+          Reset Custom Words
+        </button>
+      </div>
+    </div>
+
+    <div class="app-container">
+      <!-- HEADER -->
+      <header>
+        <div class="logo-area">
+          <button class="menu-btn" onclick="openNav()">☰</button>
+          <div class="bee-icon">🐝</div>
+          <div class="title-text">
+            <h1>Spelling Bee</h1>
+            <span>6th Grade</span>
+          </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div id="game-header-controls" style="display: none">
+          <div class="score-badge">🏆 <span id="header-score">0/10</span></div>
+        </div>
+
+        <!-- Global Exit Button (Hidden on Home) -->
+        <button
+          id="exit-btn"
+          class="exit-btn"
+          style="display: none"
+          onclick="goHome()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <!-- SCREEN 1: HOME -->
+      <div id="screen-home" class="screen active">
+        <div class="home-card">
+          <h2>Ready to Spell?</h2>
+          <p>
+            There are <strong id="total-pool-count">100</strong> words in the
+            program.<br /><br />Each quiz set has
+            <strong>10 randomized words</strong>.
+          </p>
+          <button class="btn-main" onclick="startGame()">Start Quiz</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: GAME -->
+      <div id="screen-game" class="screen">
+        <div class="game-card">
+          <div class="progress-text">
+            Word <span id="current-index">1</span> of 10
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+
+          <button class="btn-audio" onclick="speakWord()">🔊 Spell Now</button>
+
+          <div class="helper-links">
+            <button class="btn-outline" onclick="speakDefinition()">
+              📖 What does it mean?
+            </button>
+            <button class="btn-outline" onclick="speakSentence()">
+              ❓ Use it in a sentence
+            </button>
+          </div>
+
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="user-input"
+              placeholder="Type the spelling..."
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Correct answer reveal area -->
+          <div id="reveal-answer" class="reveal-answer"></div>
+          <div id="feedback" class="feedback-msg"></div>
+
+          <!-- Action Buttons -->
+          <button
+            id="btn-check"
+            class="btn-main"
+            style="background-color: #7986cb"
+            onclick="checkSpelling()"
+          >
+            Check
+          </button>
+          <button
+            id="btn-next"
+            class="btn-main btn-next"
+            style="display: none"
+            onclick="nextWord()"
+          >
+            Next Word ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: RESULTS -->
+      <div id="screen-results" class="screen">
+        <div class="home-card">
+          <h2>Quiz Complete!</h2>
+          <p>You scored:</p>
+          <div class="results-score"><span id="final-score">0</span>/10</div>
+          <p id="encouragement">Great job!</p>
+
+          <!-- Detailed Results List -->
+          <div id="results-summary" class="results-list">
+            <!-- Items injected via JS -->
+          </div>
+
+          <button class="btn-main" onclick="startGame()">
+            Start Another Quiz
+          </button>
+          <button
+            class="btn-outline"
+            style="margin-top: 15px; width: 100%"
+            onclick="goHome()"
+          >
+            Home Page
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- 100 WORD DATABASE (A-Z, 6th Grade Level) ---
+      const defaultWordsData = [
+        // A
+        {
+          word: "abandon",
+          def: "to leave completely and finally",
+          sent: "The sailors had to abandon the sinking ship.",
+        },
+        {
+          word: "accommodate",
+          def: "to provide lodging or sufficient room for",
+          sent: "The hotel can accommodate up to 500 guests.",
+        },
+        {
+          word: "accumulate",
+          def: "to gather or collect",
+          sent: "Dust began to accumulate on the old books.",
+        },
+        {
+          word: "ambition",
+          def: "a strong desire to do or to achieve something",
+          sent: "Her ambition is to become a doctor.",
+        },
+        {
+          word: "analyze",
+          def: "to examine in detail",
+          sent: "We need to analyze the data before making a decision.",
+        },
+        {
+          word: "anxiety",
+          def: "a feeling of worry, nervousness, or unease",
+          sent: "He felt a lot of anxiety before the big test.",
+        },
+        {
+          word: "artificial",
+          def: "made or produced by human beings rather than occurring naturally",
+          sent: "The flowers on the table were artificial.",
+        },
+        {
+          word: "atmosphere",
+          def: "the envelope of gases surrounding the earth or another planet",
+          sent: "The rocket broke through the Earth's atmosphere.",
+        },
+        // B
+        {
+          word: "beneficial",
+          def: "favorable or advantageous; resulting in good",
+          sent: "Exercise is beneficial to your health.",
+        },
+        {
+          word: "biography",
+          def: "an account of someone's life written by someone else",
+          sent: "I am reading a biography of Abraham Lincoln.",
+        },
+        {
+          word: "boycott",
+          def: "withdraw from commercial or social relations with as a punishment or protest",
+          sent: "The citizens decided to boycott the company.",
+        },
+        // C
+        {
+          word: "campaign",
+          def: "a series of military or political operations intended to achieve a goal",
+          sent: "The candidate launched her election campaign.",
+        },
+        {
+          word: "capacity",
+          def: "the maximum amount that something can contain",
+          sent: "The stadium has a seating capacity of 50,000.",
+        },
+        {
+          word: "chronological",
+          def: "starting with the earliest and following the order in which they occurred",
+          sent: "Please arrange the dates in chronological order.",
+        },
+        {
+          word: "civilization",
+          def: "the stage of human social and cultural development and organization",
+          sent: "Ancient Egyptian civilization lasted for thousands of years.",
+        },
+        {
+          word: "collision",
+          def: "an instance of one moving object or person striking violently against another",
+          sent: "The collision caused a lot of damage to the car.",
+        },
+        {
+          word: "competent",
+          def: "having the necessary ability, knowledge, or skill to do something successfully",
+          sent: "She is a very competent swimmer.",
+        },
+        {
+          word: "continuous",
+          def: "forming an unbroken whole; without interruption",
+          sent: "The continuous noise of the traffic kept me awake.",
+        },
+        {
+          word: "controversy",
+          def: "disagreement, typically when prolonged, public, and heated",
+          sent: "The new law caused a lot of controversy.",
+        },
+        // D
+        {
+          word: "declaration",
+          def: "a formal or explicit statement or announcement",
+          sent: "The Declaration of Independence is a historic document.",
+        },
+        {
+          word: "democracy",
+          def: "a system of government by the whole population or all the eligible members of a state",
+          sent: "Voting is a key part of a democracy.",
+        },
+        {
+          word: "deposit",
+          def: "a sum of money placed or kept in a bank account",
+          sent: "I need to deposit this check at the bank.",
+        },
+        {
+          word: "desperate",
+          def: "feeling, showing, or involving a hopeless sense that a situation is so bad as to be impossible to deal with",
+          sent: "They were desperate for water in the desert.",
+        },
+        {
+          word: "deteriorate",
+          def: "become progressively worse",
+          sent: "The weather began to deteriorate rapidly.",
+        },
+        {
+          word: "dialogue",
+          def: "conversation between two or more people as a feature of a book, play, or movie",
+          sent: "The dialogue in the movie was very witty.",
+        },
+        {
+          word: "dilemma",
+          def: "a situation in which a difficult choice has to be made between two or more alternatives",
+          sent: "She faced a dilemma about which college to attend.",
+        },
+        // E
+        {
+          word: "economy",
+          def: "the wealth and resources of a country or region",
+          sent: "A strong economy means more jobs for people.",
+        },
+        {
+          word: "efficient",
+          def: "achieving maximum productivity with minimum wasted effort or expense",
+          sent: "Fuel-efficient cars save money on gas.",
+        },
+        {
+          word: "elaborate",
+          def: "involving many carefully arranged parts or details",
+          sent: "He made an elaborate plan for the surprise party.",
+        },
+        {
+          word: "eligible",
+          def: "having the right to do or obtain something",
+          sent: "You must be 18 to be eligible to vote.",
+        },
+        {
+          word: "embarrass",
+          def: "cause someone to feel awkward, self-conscious, or ashamed",
+          sent: "I didn't mean to embarrass you in front of your friends.",
+        },
+        {
+          word: "encourage",
+          def: "give support, confidence, or hope to someone",
+          sent: "My teacher always tries to encourage me to do my best.",
+        },
+        {
+          word: "equivalent",
+          def: "equal in value, amount, function, meaning, etc.",
+          sent: "One dollar is equivalent to four quarters.",
+        },
+        {
+          word: "essential",
+          def: "absolutely necessary; extremely important",
+          sent: "Water is essential for life.",
+        },
+        {
+          word: "exaggerate",
+          def: "represent something as being larger, better, or worse than it really is",
+          sent: "Don't exaggerate the size of the fish you caught.",
+        },
+        {
+          word: "exhaust",
+          def: "drain of one's physical or mental resources; tire out",
+          sent: "The long run will exhaust you.",
+        },
+        // F
+        {
+          word: "familiar",
+          def: "well known from long or close association",
+          sent: "Her face looks familiar to me.",
+        },
+        {
+          word: "fascinate",
+          def: "draw irresistibly the attention and interest of",
+          sent: "Space exploration continues to fascinate people.",
+        },
+        {
+          word: "fatigue",
+          def: "extreme tiredness resulting from mental or physical exertion or illness",
+          sent: "He suffered from fatigue after the marathon.",
+        },
+        // G
+        {
+          word: "galaxy",
+          def: "a system of millions or billions of stars",
+          sent: "Our solar system is in the Milky Way galaxy.",
+        },
+        {
+          word: "genuine",
+          def: "truly what something is said to be; authentic",
+          sent: "The ring is made of genuine gold.",
+        },
+        {
+          word: "government",
+          def: "the governing body of a nation, state, or community",
+          sent: "The government passed a new law today.",
+        },
+        {
+          word: "guarantee",
+          def: "a formal promise or assurance",
+          sent: "I guarantee that you will like this movie.",
+        },
+        // H
+        {
+          word: "habitat",
+          def: "the natural home or environment of an animal, plant, or other organism",
+          sent: "The jungle is the natural habitat of the tiger.",
+        },
+        {
+          word: "hazardous",
+          def: "risky; dangerous",
+          sent: "Chemicals can be hazardous if not handled correctly.",
+        },
+        {
+          word: "hesitate",
+          def: "pause before saying or doing something",
+          sent: "Do not hesitate to ask for help.",
+        },
+        // I
+        {
+          word: "identical",
+          def: "similar in every detail; exactly alike",
+          sent: "The twins looked identical.",
+        },
+        {
+          word: "immigrant",
+          def: "a person who comes to live permanently in a foreign country",
+          sent: "My grandfather was an immigrant from Italy.",
+        },
+        {
+          word: "inevitable",
+          def: "certain to happen; unavoidable",
+          sent: "It was inevitable that the team would eventually lose a game.",
+        },
+        {
+          word: "influence",
+          def: "the capacity to have an effect on the character or behavior of someone",
+          sent: "Her parents have a strong influence on her decisions.",
+        },
+        {
+          word: "innocent",
+          def: "not guilty of a crime or offense",
+          sent: "The jury found the defendant innocent.",
+        },
+        // J
+        {
+          word: "jealous",
+          def: "feeling or showing envy of someone or their achievements",
+          sent: "He was jealous of his brother's new bike.",
+        },
+        {
+          word: "judgment",
+          def: "the ability to make considered decisions or come to sensible conclusions",
+          sent: "Use your best judgment when crossing the street.",
+        },
+        // K
+        {
+          word: "knowledge",
+          def: "facts, information, and skills acquired by a person",
+          sent: "Reading books is a great way to gain knowledge.",
+        },
+        // L
+        {
+          word: "laboratory",
+          def: "a room or building equipped for scientific experiments",
+          sent: "The scientist works in a laboratory.",
+        },
+        {
+          word: "leisure",
+          def: "use of free time for enjoyment",
+          sent: "He spent his leisure time playing guitar.",
+        },
+        {
+          word: "literature",
+          def: "written works, especially those considered of superior or lasting artistic merit",
+          sent: "We are studying American literature in class.",
+        },
+        // M
+        {
+          word: "magnificent",
+          def: "impressively beautiful, elaborate, or extravagant",
+          sent: "The view from the mountain top was magnificent.",
+        },
+        {
+          word: "maneuver",
+          def: "move skillfully or carefully",
+          sent: "It was hard to maneuver the car into the tight parking spot.",
+        },
+        {
+          word: "miniature",
+          def: "of a much smaller size than normal; very small",
+          sent: "She collects miniature dollhouse furniture.",
+        },
+        {
+          word: "mischievous",
+          def: "causing or showing a fondness for causing trouble in a playful way",
+          sent: "The mischievous puppy chewed on the slipper.",
+        },
+        {
+          word: "monotonous",
+          def: "dull, tedious, and repetitious; lacking in variety and interest",
+          sent: "The long drive across the desert was monotonous.",
+        },
+        // N
+        {
+          word: "necessary",
+          def: "required to be done, achieved, or present; needed",
+          sent: "It is necessary to wear a seatbelt in the car.",
+        },
+        {
+          word: "negotiate",
+          def: "obtain or bring about by discussion",
+          sent: "They tried to negotiate a better price for the car.",
+        },
+        // O
+        {
+          word: "obstacle",
+          def: "a thing that blocks one's way or prevents or hinders progress",
+          sent: "The fallen tree was a major obstacle on the road.",
+        },
+        {
+          word: "occasion",
+          def: "a particular time or instance of an event",
+          sent: "We dressed up for the special occasion.",
+        },
+        {
+          word: "opportunity",
+          def: "a set of circumstances that makes it possible to do something",
+          sent: "This job is a great opportunity for you.",
+        },
+        // P
+        {
+          word: "parallel",
+          def: "side by side and having the same distance continuously between them",
+          sent: "The train tracks run parallel to the highway.",
+        },
+        {
+          word: "permanent",
+          def: "lasting or intended to last or remain unchanged indefinitely",
+          sent: "The marker left a permanent stain on the shirt.",
+        },
+        {
+          word: "phenomenon",
+          def: "a fact or situation that is observed to exist or happen",
+          sent: "The northern lights are a natural phenomenon.",
+        },
+        {
+          word: "physician",
+          def: "a person qualified to practice medicine",
+          sent: "You should see a physician if you feel sick.",
+        },
+        {
+          word: "possess",
+          def: "to have or own something",
+          sent: "He does not possess a driver's license yet.",
+        },
+        {
+          word: "prejudice",
+          def: "preconceived opinion that is not based on reason or actual experience",
+          sent: "We must fight against racial prejudice.",
+        },
+        {
+          word: "privilege",
+          def: "a special right or advantage available only to a particular person or group",
+          sent: "It is a privilege to meet the president.",
+        },
+        // Q
+        {
+          word: "qualification",
+          def: "a quality or accomplishment that makes someone suitable for a job or activity",
+          sent: "Her main qualification is her experience in teaching.",
+        },
+        {
+          word: "quarantine",
+          def: "a state or period of isolation for people or animals that may carry a disease",
+          sent: "The sick dog was put in quarantine.",
+        },
+        // R
+        {
+          word: "recommend",
+          def: "put forward someone or something with approval as being suitable",
+          sent: "I recommend the chicken soup; it is delicious.",
+        },
+        {
+          word: "restaurant",
+          def: "a place where people pay to sit and eat meals that are cooked and served on the premises",
+          sent: "We went to a fancy restaurant for dinner.",
+        },
+        {
+          word: "rhythm",
+          def: "a strong, regular, repeated pattern of movement or sound",
+          sent: "The music had a fast rhythm.",
+        },
+        // S
+        {
+          word: "sacrifice",
+          def: "an act of giving up something valued for the sake of something else",
+          sent: "Parents often sacrifice their time for their children.",
+        },
+        {
+          word: "schedule",
+          def: "a plan for carrying out a process or procedure",
+          sent: "Let me check my schedule to see if I am free.",
+        },
+        {
+          word: "separate",
+          def: "forming or viewing as a unit apart or by itself",
+          sent: "Please keep the red clothes separate from the white ones.",
+        },
+        {
+          word: "significant",
+          def: "sufficiently great or important to be worthy of attention",
+          sent: "There was a significant improvement in his grades.",
+        },
+        {
+          word: "similar",
+          def: "resembling without being identical",
+          sent: "You and your brother look very similar.",
+        },
+        {
+          word: "simultaneous",
+          def: "occurring, operating, or done at the same time",
+          sent: "The thunder and lightning were almost simultaneous.",
+        },
+        {
+          word: "sincerely",
+          def: "in a sincere or genuine way",
+          sent: "I sincerely hope you feel better soon.",
+        },
+        {
+          word: "specific",
+          def: "clearly defined or identified",
+          sent: "Is there a specific color you are looking for?",
+        },
+        {
+          word: "strategy",
+          def: "a plan of action or policy designed to achieve a major or overall aim",
+          sent: "The team discussed their strategy for the game.",
+        },
+        // T
+        {
+          word: "technique",
+          def: "a way of carrying out a particular task",
+          sent: "She has a unique technique for painting.",
+        },
+        {
+          word: "temperature",
+          def: "the degree or intensity of heat present in a substance or object",
+          sent: "The temperature dropped below freezing last night.",
+        },
+        {
+          word: "temporary",
+          def: "lasting for only a limited period of time",
+          sent: "The closure of the road is only temporary.",
+        },
+        {
+          word: "territory",
+          def: "an area of land under the jurisdiction of a ruler or state",
+          sent: "Wolves will defend their territory from other packs.",
+        },
+        {
+          word: "thorough",
+          def: "complete with regard to every detail",
+          sent: "The police conducted a thorough investigation.",
+        },
+        // U
+        {
+          word: "unanimous",
+          def: "fully in agreement",
+          sent: "The jury reached a unanimous verdict.",
+        },
+        {
+          word: "unique",
+          def: "being the only one of its kind; unlike anything else",
+          sent: "Each snowflake is unique.",
+        },
+        // V
+        {
+          word: "vacuum",
+          def: "a space entirely devoid of matter",
+          sent: "Space is a vacuum.",
+        },
+        {
+          word: "vegetable",
+          def: "a plant or part of a plant used as food",
+          sent: "Broccoli is a healthy vegetable.",
+        },
+        {
+          word: "villain",
+          def: "a character whose evil actions or motives are important to the plot",
+          sent: "The villain in the movie wanted to take over the world.",
+        },
+        // W
+        {
+          word: "weather",
+          def: "the state of the atmosphere at a place and time",
+          sent: "The weather is supposed to be sunny tomorrow.",
+        },
+        {
+          word: "weird",
+          def: "suggesting something supernatural; unearthly",
+          sent: "That was a very weird dream.",
+        },
+        // Y
+        {
+          word: "yield",
+          def: "produce or provide",
+          sent: "This farm will yield a large harvest this year.",
+        },
+        // Z
+        {
+          word: "zoology",
+          def: "the scientific study of the behavior, structure, physiology, classification, and distribution of animals",
+          sent: "She wants to study zoology because she loves animals.",
+        },
+      ];
+
+      // --- STATE VARIABLES ---
+      let fullWordPool = [];
+      let currentQuizSet = [];
+      let currentIndex = 0;
+      let score = 0;
+      let currentWordObj = null;
+      let sessionHistory = []; // Tracks results for the summary screen
+
+      // --- DOM ELEMENTS ---
+      const screenHome = document.getElementById("screen-home");
+      const screenGame = document.getElementById("screen-game");
+      const screenResults = document.getElementById("screen-results");
+
+      const gameHeaderControls = document.getElementById(
+        "game-header-controls"
+      );
+      const exitBtn = document.getElementById("exit-btn");
+      const headerScore = document.getElementById("header-score");
+      const totalPoolCountEl = document.getElementById("total-pool-count");
+
+      const progressIndex = document.getElementById("current-index");
+      const progressFill = document.getElementById("progress-fill");
+      const userInput = document.getElementById("user-input");
+      const feedbackEl = document.getElementById("feedback");
+      const revealAnswerEl = document.getElementById("reveal-answer");
+      const btnCheck = document.getElementById("btn-check");
+      const btnNext = document.getElementById("btn-next");
+
+      const customListEl = document.getElementById("custom-words-list");
+      const resultsSummaryEl = document.getElementById("results-summary");
+
+      // --- INITIALIZATION ---
+      window.onload = function () {
+        loadWordPool();
+      };
+
+      // --- NAVIGATION ---
+      function showScreen(screenName) {
+        screenHome.classList.remove("active");
+        screenGame.classList.remove("active");
+        screenResults.classList.remove("active");
+
+        gameHeaderControls.style.display = "none";
+        exitBtn.style.display = "none";
+
+        if (screenName === "home") {
+          screenHome.classList.add("active");
+          loadWordPool();
+        } else if (screenName === "game") {
+          screenGame.classList.add("active");
+          gameHeaderControls.style.display = "block";
+          exitBtn.style.display = "block";
+        } else if (screenName === "results") {
+          screenResults.classList.add("active");
+          exitBtn.style.display = "block";
+        }
+      }
+
+      function goHome() {
+        // Stop any ongoing speech
+        window.speechSynthesis.cancel();
+        showScreen("home");
+      }
+
+      // --- GAME LOGIC ---
+
+      function loadWordPool() {
+        const storedWords = localStorage.getItem("customSpellingWords");
+        let customWords = storedWords ? JSON.parse(storedWords) : [];
+
+        // Combine default data with custom data
+        const normalizedCustom = customWords.map((cw) => {
+          if (typeof cw === "string")
+            return {
+              word: cw,
+              def: "Custom word",
+              sent: "No sentence available.",
+            };
+          return {
+            word: cw.word,
+            def: "Custom word",
+            sent: "No sentence available.",
+          };
+        });
+
+        fullWordPool = [...defaultWordsData, ...normalizedCustom];
+
+        totalPoolCountEl.textContent = fullWordPool.length;
+        updateCustomListUI(normalizedCustom);
+      }
+
+      function startGame() {
+        score = 0;
+        currentIndex = 0;
+        sessionHistory = []; // Reset history
+        headerScore.textContent = `0/10`;
+
+        // Shuffle and pick 10
+        const shuffled = [...fullWordPool].sort(() => 0.5 - Math.random());
+        currentQuizSet = shuffled.slice(0, 10);
+
+        if (currentQuizSet.length === 0) {
+          alert("No words available!");
+          return;
+        }
+
+        showScreen("game");
+        loadNextWord();
+      }
+
+      function loadNextWord() {
+        // Reset UI state for new word
+        userInput.value = "";
+        userInput.disabled = false;
+        feedbackEl.textContent = "";
+        feedbackEl.className = "feedback-msg";
+        revealAnswerEl.style.display = "none";
+        btnCheck.style.display = "block";
+        btnNext.style.display = "none";
+
+        currentWordObj = currentQuizSet[currentIndex];
+
+        // Update Progress
+        progressIndex.textContent = currentIndex + 1;
+        progressFill.style.width = `${((currentIndex + 1) / 10) * 100}%`;
+
+        userInput.focus();
+      }
+
+      function nextWord() {
+        currentIndex++;
+        if (currentIndex >= currentQuizSet.length) {
+          endGame();
+        } else {
+          loadNextWord();
+        }
+      }
+
+      // --- SPEECH FUNCTIONS ---
+      function speakText(text) {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel(); // Stop previous
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.85;
+          utterance.lang = "en-US";
+          window.speechSynthesis.speak(utterance);
+        } else {
+          alert("Text-to-speech not supported.");
+        }
+      }
+
+      function speakWord() {
+        if (currentWordObj) speakText(currentWordObj.word);
+      }
+
+      function speakDefinition() {
+        if (currentWordObj)
+          speakText(currentWordObj.def || "No definition available.");
+      }
+
+      function speakSentence() {
+        if (currentWordObj)
+          speakText(currentWordObj.sent || "No sentence available.");
+      }
+
+      // --- CHECKING LOGIC ---
+      function checkSpelling() {
+        const userSpelling = userInput.value.trim().toLowerCase();
+        const correctSpelling = currentWordObj.word.toLowerCase();
+
+        if (!userSpelling) return;
+
+        // Disable input
+        userInput.disabled = true;
+        btnCheck.style.display = "none";
+        btnNext.style.display = "block";
+
+        let isCorrect = false;
+
+        if (userSpelling === correctSpelling) {
+          feedbackEl.textContent = "Correct! 🎉";
+          feedbackEl.className = "feedback-msg correct";
+          score++;
+          headerScore.textContent = `${score}/10`;
+          speakText("Correct!");
+          isCorrect = true;
+        } else {
+          feedbackEl.textContent = "Incorrect.";
+          feedbackEl.className = "feedback-msg incorrect";
+
+          // Show Correct Answer Immediately
+          revealAnswerEl.innerHTML = `Correct spelling: <strong>${currentWordObj.word}</strong>`;
+          revealAnswerEl.style.display = "block";
+          isCorrect = false;
+        }
+
+        // Save to history for results page
+        sessionHistory.push({
+          word: currentWordObj.word,
+          attempt: userInput.value.trim(), // keep original case for display
+          correct: isCorrect,
+        });
+      }
+
+      // Listen for Enter key
+      userInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          if (btnCheck.style.display !== "none") {
+            checkSpelling();
+          } else {
+            nextWord();
+          }
+        }
+      });
+
+      function endGame() {
+        showScreen("results");
+        document.getElementById("final-score").textContent = score;
+
+        const msg = document.getElementById("encouragement");
+        if (score === 10) msg.textContent = "Perfect Score! 🌟";
+        else if (score > 7) msg.textContent = "Great job! 🐝";
+        else msg.textContent = "Keep practicing!";
+
+        renderResults();
+      }
+
+      function renderResults() {
+        resultsSummaryEl.innerHTML = ""; // Clear previous
+
+        sessionHistory.forEach((item) => {
+          const div = document.createElement("div");
+
+          if (item.correct) {
+            div.className = "result-item res-correct";
+            div.innerHTML = `✅ <strong>${item.word}</strong>`;
+          } else {
+            div.className = "result-item res-incorrect";
+            div.innerHTML = `
+                        ❌ <strong>${item.word}</strong>
+                        <span class="res-detail">You typed: "${item.attempt}"</span>
+                    `;
+          }
+
+          resultsSummaryEl.appendChild(div);
+        });
+      }
+
+      // --- SIDEBAR & CUSTOM WORDS ---
+
+      function openNav() {
+        document.getElementById("mySidebar").style.width = "300px";
+        document.getElementById("overlay").style.display = "block";
+      }
+
+      function closeNav() {
+        document.getElementById("mySidebar").style.width = "0";
+        document.getElementById("overlay").style.display = "none";
+      }
+
+      function saveNewWord() {
+        const input = document.getElementById("new-word-input");
+        const status = document.getElementById("save-status");
+        const newWord = input.value.trim();
+
+        if (!newWord) {
+          status.textContent = "Please type a word.";
+          status.style.color = "red";
+          return;
+        }
+
+        let existingWords = localStorage.getItem("customSpellingWords");
+        let customList = existingWords ? JSON.parse(existingWords) : [];
+
+        // Save as object
+        customList.push({ word: newWord, date: new Date() });
+        localStorage.setItem("customSpellingWords", JSON.stringify(customList));
+
+        status.textContent = "Saved!";
+        status.style.color = "green";
+        input.value = "";
+
+        loadWordPool();
+      }
+
+      function updateCustomListUI(customWords) {
+        customListEl.innerHTML = "";
+        if (customWords.length === 0) {
+          customListEl.innerHTML = "<li>No custom words yet.</li>";
+          return;
+        }
+        customWords
+          .slice()
+          .reverse()
+          .slice(0, 10)
+          .forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item.word;
+            li.style.marginBottom = "5px";
+            customListEl.appendChild(li);
+          });
+      }
+
+      function clearCustomWords() {
+        if (confirm("Delete all custom words?")) {
+          localStorage.removeItem("customSpellingWords");
+          loadWordPool();
+          alert("Cleared.");
+        }
+      }
+    </script>
+  </body>
+</html>
+{% endblock %}

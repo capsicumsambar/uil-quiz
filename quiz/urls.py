@@ -10,4 +10,5 @@ urlpatterns = [
     path("check-answer/", views.check_answer, name="check_answer"),
     path("next/", views.next_question, name="next_question"),
     path("results/", views.results, name="results"),
+    path("spelling/", views.spelling_bee, name="spelling_bee"),
 ]

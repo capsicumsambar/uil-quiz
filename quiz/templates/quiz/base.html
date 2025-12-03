@@ -54,6 +54,20 @@
         color: var(--primary-color);
       }
 
+      .nav-link {
+        color: #495057;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+      }
+
+      .nav-link:hover {
+        background-color: #f8f9fa;
+        color: var(--primary-color);
+      }
+
       .brand-icon {
         width: 32px;
         height: 32px;
@@ -100,8 +114,12 @@
         <div class="d-flex justify-content-between align-items-center">
           <a href="{% url 'home' %}" class="brand">
             <div class="brand-icon">U</div>
-            <span>UIL Social Studies</span>
+            <span>UIL Practice</span>
           </a>
+          <nav class="d-flex gap-3">
+            <a href="{% url 'home' %}" class="nav-link">Social Studies</a>
+            <a href="{% url 'spelling_bee' %}" class="nav-link">Spelling Bee</a>
+          </nav>
           {% block header_right %}{% endblock %}
         </div>
       </div>
